@@ -314,7 +314,8 @@
     // presentWindow: but must carefully check dependencies on 'setupDone'
     // flag.
 
-    [self addNewTabViewItem];
+//    [self addNewTabViewItem];
+    [vimView addNewTab];
 
     setupDone = YES;
 }
@@ -420,7 +421,9 @@
         // for example if 'showtabline=2').
         // TODO: Store window pixel dimensions instead of rows/columns?
         int autosaveRows = rows;
-        if (![[vimView tabBarControl] isHidden])
+//        if (![[vimView tabBarControl] isHidden])
+//            ++autosaveRows;
+        if (![[vimView tabline] isHidden])
             ++autosaveRows;
 
         NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
@@ -809,7 +812,8 @@
 
 - (void)showTabBar:(BOOL)on
 {
-    [[vimView tabBarControl] setHidden:!on];
+//    [[vimView tabBarControl] setHidden:!on];
+    [[vimView tabline] setHidden:!on];
     [self updateTablineSeparator];
     shouldMaximizeWindow = YES;
 }
@@ -1669,7 +1673,8 @@
 
 - (void)updateTablineSeparator
 {
-    BOOL tabBarVisible  = ![[vimView tabBarControl] isHidden];
+//    BOOL tabBarVisible  = ![[vimView tabBarControl] isHidden];
+    BOOL tabBarVisible  = ![[vimView tabline] isHidden];
     BOOL toolbarHidden  = [decoratedWindow toolbar] == nil;
     BOOL windowTextured = ([decoratedWindow styleMask] &
                             NSWindowStyleMaskTexturedBackground) != 0;

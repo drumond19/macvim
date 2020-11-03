@@ -67,6 +67,7 @@ static CGSSetWindowBackgroundBlurRadiusFunction* GetCGSSetWindowBackgroundBlurRa
                   backing:(NSBackingStoreType)bufferingType
                     defer:(BOOL)flag
 {
+    style &= ~NSWindowStyleMaskTexturedBackground;
     self = [super initWithContentRect:rect
                             styleMask:style
                               backing:bufferingType
@@ -78,7 +79,8 @@ static CGSSetWindowBackgroundBlurRadiusFunction* GetCGSSetWindowBackgroundBlurRa
     NSRect tabSepRect = { {0, rect.size.height - 1}, {rect.size.width, 1} };
     tablineSeparator = [[NSBox alloc] initWithFrame:tabSepRect];
     
-    [tablineSeparator setBoxType:NSBoxSeparator];
+    [tablineSeparator setBoxType:NSBoxCustom];
+    [tablineSeparator setFillColor:NSColor.secondaryLabelColor];
     [tablineSeparator setHidden:YES];
     [tablineSeparator setAutoresizingMask:NSViewWidthSizable|NSViewMinYMargin];
 

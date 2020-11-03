@@ -1,0 +1,476 @@
+#import <QuartzCore/QuartzCore.h>
+#import "MMTabline.h"
+
+typedef struct TabWidth {
+    CGFloat width;
+    CGFloat remainder;
+} TabWidth;
+
+const CGFloat OptimumTabWidth = 200;
+const CGFloat MinimumTabWidth = 100;
+const CGFloat TabOverlap      = 2;
+
+@implementation MMTabline
+{
+    NSBox *_background;
+    NSView *_tabsContainer;
+    NSScrollView *_scrollView;
+    NSMutableArray <MMTab *> *_tabs;
+    NSTrackingArea *_trackingArea;
+    NSLayoutConstraint *_addTabButtonTrailingConstraint;
+    BOOL _pendingFixupLayout;
+    MMTab *_selectedTab;
+    MMTab *_draggedTab;
+    CGFloat _xOffsetForDrag;
+    NSInteger _initialDraggedTabIndex;
+    NSInteger _finalDraggedTabIndex;
+}
+
+- (instancetype)initWithFrame:(NSRect)frameRect
+{
+    self = [super initWithFrame:frameRect];
+    if (self) {
+        _tabs = [NSMutableArray new];
+        _showsAddTabButton = YES; // get from NSUserDefaults
+        
+        // Add background first so it's at the bottom of view hierarchy
+        _background = [NSBox new];
+        _background.boxType = NSBoxCustom;
+        _background.borderWidth = 0;
+        _background.fillColor = [NSColor colorNamed:@"TablineFill"];
+        _background.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+        _background.frame = self.bounds;
+        [self addSubview:_background];
+        
+        // This view holds the tab views.
+        _tabsContainer = [NSView new];
+        _tabsContainer.frame = (NSRect){{0, 0}, frameRect.size};
+        
+        _scrollView = [NSScrollView new];
+        _scrollView.drawsBackground = NO;
+        _scrollView.verticalScrollElasticity = NSScrollElasticityNone;
+        _scrollView.contentView.postsBoundsChangedNotifications = YES;
+        _scrollView.translatesAutoresizingMaskIntoConstraints = NO;
+        _scrollView.documentView = _tabsContainer;
+        [self addSubview:_scrollView];
+
+        _addTabButton = [MMHoverButton new];
+        _addTabButton.image = [NSImage imageNamed:@"AddTabButton"];
+        _addTabButton.translatesAutoresizingMaskIntoConstraints = NO;
+        _addTabButton.target = self;
+        _addTabButton.action = @selector(addTabAtEnd);
+        [_addTabButton sizeToFit];
+        [self addSubview:_addTabButton];
+
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_scrollView]-5-[_addTabButton]" options:NSLayoutFormatAlignAllCenterY metrics:nil views:NSDictionaryOfVariableBindings(_scrollView, _addTabButton)]];
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_scrollView]|" options:0 metrics:nil views:@{@"_scrollView":_scrollView}]];
+        
+        CGFloat addButtonTrailingMargin = _showsAddTabButton ? 5 : -(NSWidth(_addTabButton.frame) + 5);
+        _addTabButtonTrailingConstraint = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:_addTabButton attribute:NSLayoutAttributeTrailing multiplier:1 constant:addButtonTrailingMargin];
+        [self addConstraint:_addTabButtonTrailingConstraint];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didScroll:) name:NSViewBoundsDidChangeNotification object:_scrollView.contentView];
+    }
+    return self;
+}
+
+- (void)layout
+{
+    [super layout];
+    [self fixupLayoutWithAnimation:NO];
+}
+
+#pragma mark - Accessors
+
+- (NSUInteger)numberOfTabs
+{
+    return _tabs.count;
+}
+
+- (NSUInteger)optimumTabWidth
+{
+    return _optimumTabWidth ?: OptimumTabWidth;
+}
+
+- (NSUInteger)minimumTabWidth
+{
+    return _minimumTabWidth ?: MinimumTabWidth;
+}
+
+- (void)setShowsAddTabButton:(BOOL)showsAddTabButton
+{
+    if (_showsAddTabButton != showsAddTabButton) {
+        _showsAddTabButton = showsAddTabButton;
+        _addTabButtonTrailingConstraint.constant = showsAddTabButton ? 5 : -(NSWidth(_addTabButton.frame) + 5);;
+    }
+}
+
+- (void)setTablineBgColor:(NSColor *)color
+{
+    _tablineBgColor = color;
+    for (MMTab *tab in _tabs) tab.state = tab.state;
+}
+
+- (void)setTablineFgColor:(NSColor *)color
+{
+    _tablineFgColor = color;
+    for (MMTab *tab in _tabs) tab.state = tab.state;
+}
+
+- (void)setTablineSelBgColor:(NSColor *)color
+{
+    _tablineSelBgColor = color;
+    for (MMTab *tab in _tabs) tab.state = tab.state;
+}
+
+- (void)setTablineSelFgColor:(NSColor *)color
+{
+    _tablineSelFgColor = color;
+    _addTabButton.fgColor = color;
+    for (MMTab *tab in _tabs) tab.state = tab.state;
+}
+
+- (void)setTablineFillFgColor:(NSColor *)color
+{
+    _tablineFillFgColor = color;
+    _background.fillColor = color ?: [NSColor colorNamed:@"TablineFill"];
+}
+
+- (NSUInteger)addTabAtEnd
+{
+    return [self addTabAtIndex:(_tabs.count ? _tabs.count : 0)];
+}
+
+- (NSUInteger)addTabAfterSelectedTab
+{
+    return [self addTabAtIndex:(_tabs.count ? _selectedTabIndex + 1 : 0)];
+}
+
+- (NSUInteger)addTabAtIndex:(NSUInteger)index
+{
+    if (!self.superview || index > _tabs.count) return NSNotFound;
+    
+    TabWidth t        = [self tabWidthForTabs:_tabs.count + 1];
+    NSRect frame      = _tabsContainer.bounds;
+    frame.size.width  = index == _tabs.count ? t.width + t.remainder : t.width;
+    frame.origin.x    = index ? index * (t.width - TabOverlap) : 0;
+    MMTab *newTab = [[MMTab alloc] initWithFrame:frame tabline:self];
+
+    [_tabs insertObject:newTab atIndex:index];
+    [_tabsContainer addSubview:newTab];
+    
+    [self selectTabAtIndex:index];
+    [self fixupLayoutWithAnimation:YES];
+    [self fixupCloseButtons];
+    /* Let MacVim handle scrolling to selected tab.
+    [self scrollTabToVisibleAtIndex:_selectedTabIndex]; */
+    [self evaluateHoverStateForMouse:[self.window mouseLocationOutsideOfEventStream]];
+    
+    return index;
+}
+
+- (void)closeTab:(MMTab *)tab force:(BOOL)force layoutImmediately:(BOOL)layoutImmediately
+{
+    NSUInteger index = [_tabs indexOfObject:tab];
+    if (!force && [self.delegate respondsToSelector:@selector(tabline:shouldCloseTabAtIndex:)]) {
+        if (![self.delegate tabline:self shouldCloseTabAtIndex:index]) return;
+    }
+    if (index != NSNotFound) {
+        CGFloat w = NSWidth(tab.frame) - TabOverlap;
+        [tab removeFromSuperview];
+        for (NSUInteger i = index + 1; i < _tabs.count; i++) {
+            MMTab *tv = _tabs[i];
+            NSRect frame = tv.frame;
+            frame.origin.x -= w;
+            tv.animator.frame = frame;
+        }
+        [_tabs removeObject:tab];
+        if (index <= _selectedTabIndex) {
+            if (index < _selectedTabIndex || index > _tabs.count - 1) {
+                [self selectTabAtIndex:_selectedTabIndex - 1];
+            }
+            else {
+                [self selectTabAtIndex:_selectedTabIndex];
+            }
+        }
+        [self fixupCloseButtons];
+        [self evaluateHoverStateForMouse:[self.window mouseLocationOutsideOfEventStream]];
+        if (layoutImmediately) [self fixupLayoutWithAnimation:YES];
+        else _pendingFixupLayout = YES;
+    } else {
+        NSLog(@"CANNOT FIND TAB TO REMOVE");
+    }
+}
+
+- (void)selectTabAtIndex:(NSUInteger)index
+{
+    if (_selectedTabIndex <= _tabs.count - 1) {
+        _tabs[_selectedTabIndex].state = MMTabStateUnselected;
+    }
+    if (index <= _tabs.count - 1) {
+        _selectedTabIndex = index;
+        _tabs[_selectedTabIndex].state = MMTabStateSelected;
+    }
+    else {
+        NSLog(@"TRIED TO SELECT OUT OF BOUNDS: %ld/%ld", index, _tabs.count - 1);
+    }
+    _selectedTab = _tabs[_selectedTabIndex];
+    [self fixupTabZOrder];
+}
+
+- (MMTab *)tabAtIndex:(NSUInteger)index
+{
+    if (index >= _tabs.count) {
+        [NSException raise:NSRangeException format:@"Index (%lu) beyond bounds (%lu)", index, _tabs.count - 1];
+    }
+    return _tabs[index];
+}
+
+#pragma mark - Helpers
+
+NSComparisonResult SortTabsForZOrder(MMTab *tab1, MMTab *tab2, void *draggedTab)
+{   // Z-order, highest to lowest: dragged, selected, hovered, rightmost
+    if (tab1 == (__bridge MMTab *)draggedTab) return NSOrderedDescending;
+    if (tab2 == (__bridge MMTab *)draggedTab) return NSOrderedAscending;
+    if (tab1.state == MMTabStateSelected) return NSOrderedDescending;
+    if (tab2.state == MMTabStateSelected) return NSOrderedAscending;
+    if (tab1.state == MMTabStateUnselectedHover) return NSOrderedDescending;
+    if (tab2.state == MMTabStateUnselectedHover) return NSOrderedAscending;
+    if (NSMinX(tab1.frame) < NSMinX(tab2.frame)) return NSOrderedAscending;
+    if (NSMinX(tab1.frame) > NSMinX(tab2.frame)) return NSOrderedDescending;
+    return NSOrderedSame;
+}
+
+- (TabWidth)tabWidthForTabs:(NSUInteger)numTabs
+{
+    // Each tab (except the first) overlaps the previous tab by TabOverlap
+    // points so we add TabOverlap * (numTabs - 1) to account for this.
+    CGFloat availableWidthForTabs = NSWidth(_scrollView.frame) + TabOverlap * (numTabs - 1);
+    CGFloat tabWidth = (availableWidthForTabs / numTabs);
+    if (tabWidth > self.optimumTabWidth) {
+        return (TabWidth){self.optimumTabWidth, 0};
+    }
+    if (tabWidth < self.minimumTabWidth) {
+        return (TabWidth){self.minimumTabWidth, 0};
+    }
+    // Round tabWidth down to nearest 0.5
+    CGFloat f = floor(tabWidth);
+    tabWidth = (tabWidth - f < 0.5) ? f : f + 0.5;
+    return (TabWidth){tabWidth, availableWidthForTabs - tabWidth * numTabs};
+}
+
+- (void)fixupCloseButtons
+{
+    if (_tabs.count == 1) {
+        _tabs.firstObject.closeButtonHidden = YES;
+    }
+    else for (MMTab *tab in _tabs) {
+        tab.closeButtonHidden = NO;
+    }
+}
+
+- (void)fixupTabZOrder
+{
+    [_tabsContainer sortSubviewsUsingFunction:SortTabsForZOrder context:(__bridge void *)(_draggedTab)];
+}
+
+- (void)fixupLayoutWithAnimation:(BOOL)shouldAnimate
+{
+    if (_tabs.count == 0) return;
+    
+    TabWidth t = [self tabWidthForTabs:_tabs.count];
+    for (NSInteger i = 0; i < _tabs.count; i++) {
+        MMTab *tab = _tabs[i];
+        if (_draggedTab == tab) continue;
+        NSRect frame = tab.frame;
+        frame.size.width = i == _tabs.count - 1 ? t.width + t.remainder : t.width;
+        frame.origin.x = i ? i * (t.width - TabOverlap) : 0;
+        if (shouldAnimate) {
+            [NSAnimationContext runAnimationGroup:^(NSAnimationContext * _Nonnull context) {
+                context.allowsImplicitAnimation = YES;
+                tab.animator.frame = frame;
+                [tab layout];
+            }];
+        } else tab.frame = frame;
+    }
+    // _tabsContainer expands to fit tabs, is at least as wide as _scrollView.
+    NSRect frame = _tabsContainer.frame;
+    frame.size.width = t.width * _tabs.count - TabOverlap * (_tabs.count - 1);
+    frame.size.width = NSWidth(frame) < NSWidth(_scrollView.frame) ? NSWidth(_scrollView.frame) : NSWidth(frame);
+    if (shouldAnimate) _tabsContainer.animator.frame = frame;
+    else _tabsContainer.frame = frame;
+}
+
+#pragma mark - Mouse
+
+- (void)updateTrackingAreas
+{
+    [self removeTrackingArea:_trackingArea];
+    _trackingArea = [[NSTrackingArea alloc] initWithRect:self.bounds options:(NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInKeyWindow) owner:self userInfo:nil];
+    [self addTrackingArea:_trackingArea];
+    [super updateTrackingAreas];
+}
+
+- (BOOL)mouse:(NSPoint)windowLocation inTab:(MMTab *)tab
+{
+    NSPoint location = [tab convertPoint:windowLocation fromView:nil];
+    return [tab mouse:location inRect:tab.bounds];
+}
+
+- (NSUInteger)indexOfTabAtMouse:(NSPoint)windowLocation
+{
+    for (MMTab *tab in _tabs)
+        if ([self mouse:windowLocation inTab:tab])
+            return [_tabs indexOfObject:tab];
+    return NSNotFound;
+}
+
+- (void)evaluateHoverStateForMouse:(NSPoint)locationInWindow
+{
+    for (MMTab *tab in _tabs) {
+        if ([self mouse:locationInWindow inTab:tab]) {
+            if (tab.state == MMTabStateUnselected) {
+                tab.state = MMTabStateUnselectedHover;
+            }
+        }
+        else if (tab.state == MMTabStateUnselectedHover) {
+            tab.state = MMTabStateUnselected;
+        }
+    }
+    [self fixupTabZOrder];
+}
+
+- (void)mouseExited:(NSEvent *)event
+{
+    for (MMTab *tab in _tabs) {
+        if (tab.state == MMTabStateUnselectedHover) {
+            tab.state = MMTabStateUnselected;
+        }
+    }
+    if (_pendingFixupLayout) {
+        _pendingFixupLayout = NO;
+        [self fixupLayoutWithAnimation:YES];
+    }
+    [self fixupTabZOrder];
+}
+
+- (void)mouseMoved:(NSEvent *)event
+{
+    [self evaluateHoverStateForMouse:event.locationInWindow];
+}
+
+- (void)mouseDown:(NSEvent *)event
+{
+    _draggedTab = nil;
+    _initialDraggedTabIndex = _finalDraggedTabIndex = NSNotFound;
+    
+    // Select clicked tab, possibly pending delegate's approval.
+    for (MMTab *tab in _tabs) {
+        if ([self mouse:event.locationInWindow inTab:tab]) {
+            _draggedTab = tab;
+            if (tab.state != MMTabStateSelected) {
+                NSUInteger index = [_tabs indexOfObject:tab];
+                if ([self.delegate respondsToSelector:@selector(tabline:shouldSelectTabAtIndex:)]) {
+                    if (![self.delegate tabline:self shouldSelectTabAtIndex:index]) break;
+                }
+                [self selectTabAtIndex:index];
+            }
+            [self scrollTabToVisibleAtIndex:_selectedTabIndex];
+            break;
+        }
+    }
+}
+
+- (void)mouseUp:(NSEvent *)event
+{
+    _draggedTab = nil;
+    [self fixupLayoutWithAnimation:YES];
+    [self fixupTabZOrder];
+    if (_finalDraggedTabIndex != NSNotFound) [self scrollTabToVisibleAtIndex:_finalDraggedTabIndex];
+    if (_initialDraggedTabIndex != NSNotFound &&
+        _initialDraggedTabIndex != _finalDraggedTabIndex) {
+        if ([self.delegate respondsToSelector:@selector(tabline:didDragTab:toIndex:)]) {
+            [self.delegate tabline:self didDragTab:_tabs[_finalDraggedTabIndex] toIndex:_finalDraggedTabIndex];
+        }
+    }
+}
+
+- (void)mouseDragged:(NSEvent *)event
+{
+    if (!_draggedTab || _tabs.count < 2) return;
+    NSPoint mouse = [_tabsContainer convertPoint:event.locationInWindow fromView:nil];
+    if (_initialDraggedTabIndex == NSNotFound) {
+        _initialDraggedTabIndex = [_tabs indexOfObject:_draggedTab];
+        _xOffsetForDrag = mouse.x - _draggedTab.frame.origin.x;
+    }
+    [_tabsContainer autoscroll:event];
+    [self fixupTabZOrder];
+    [_draggedTab setFrameOrigin:NSMakePoint(mouse.x - _xOffsetForDrag, 0)];
+    [_tabs sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(MMTab *t1, MMTab *t2) {
+        if (NSMinX(t1.frame) <= NSMinX(t2.frame)) return NSOrderedAscending;
+        if (NSMinX(t1.frame) >  NSMinX(t2.frame)) return NSOrderedDescending;
+        return NSOrderedSame;
+    }];
+    _selectedTabIndex = [_tabs indexOfObject:_selectedTab];
+    _finalDraggedTabIndex = [_tabs indexOfObject:_draggedTab];
+    [self fixupLayoutWithAnimation:YES];
+}
+
+#pragma mark - Scroll
+
+- (void)didScroll:(NSNotification *)note
+{
+    [self evaluateHoverStateForMouse:[self.window mouseLocationOutsideOfEventStream]];
+}
+
+- (void)scrollTabToVisibleAtIndex:(NSUInteger)index
+{
+    if (_tabs.count == 0) return;
+    
+    NSRect tabFrame = _tabs[index].frame;
+    NSRect clipBounds = _scrollView.contentView.bounds;
+    // One side or the other of the selected tab is clipped.
+    if (!NSContainsRect(clipBounds, tabFrame)) {
+        if (NSMinX(tabFrame) > NSMinX(clipBounds)) {
+            // Right side of the selected tab is clipped.
+            clipBounds.origin.x = NSMaxX(tabFrame) - NSWidth(clipBounds);
+        } else {
+            // Left side of the selected tab is clipped.
+            clipBounds.origin.x = tabFrame.origin.x;
+        }
+        _scrollView.contentView.animator.bounds = clipBounds;
+    }
+}
+
+#pragma mark - Drag and drop
+
+- (NSDragOperation)draggingEntered:(id<NSDraggingInfo>)dragInfo
+{
+    [self evaluateHoverStateForMouse:dragInfo.draggingLocation];
+    if (self.delegate && [self.delegate respondsToSelector:@selector(tabline:draggingEntered:forTabAtIndex:)]) {
+        NSUInteger index = [self indexOfTabAtMouse:dragInfo.draggingLocation];
+        return [self.delegate tabline:self draggingEntered:dragInfo forTabAtIndex:index];
+    }
+    return NSDragOperationNone;
+}
+
+- (NSDragOperation)draggingUpdated:(id<NSDraggingInfo>)dragInfo
+{
+    return [self draggingEntered:dragInfo];
+}
+
+- (void)draggingExited:(id<NSDraggingInfo>)dragInfo
+{
+    [self evaluateHoverStateForMouse:dragInfo.draggingLocation];
+}
+
+- (BOOL)performDragOperation:(id<NSDraggingInfo>)dragInfo
+{
+    if (self.delegate && [self.delegate respondsToSelector:@selector(tabline:performDragOperation:forTabAtIndex:)]) {
+        NSUInteger index = [self indexOfTabAtMouse:dragInfo.draggingLocation];
+        return [self.delegate tabline:self performDragOperation:dragInfo forTabAtIndex:index];
+    }
+    return NO;
+}
+
+@end

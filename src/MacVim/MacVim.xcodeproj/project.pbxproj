@@ -73,6 +73,11 @@
 		907FF7512521BCE200BADACB /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 907FF74F2521BCE200BADACB /* MainMenu.xib */; };
 		907FF7542521BDA600BADACB /* Preferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 907FF7522521BDA600BADACB /* Preferences.xib */; };
 		907FF7572521BDC300BADACB /* FindAndReplace.xib in Resources */ = {isa = PBXBuildFile; fileRef = 907FF7552521BDC200BADACB /* FindAndReplace.xib */; };
+		9218149D254D105F00E48243 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9218149C254D105F00E48243 /* Assets.xcassets */; };
+		925B55D5254B604A006B047E /* MMHoverButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 925B55D1254B604A006B047E /* MMHoverButton.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		925B55D7254B61AC006B047E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 925B55D6254B61AB006B047E /* QuartzCore.framework */; };
+		92C6F6E825587E1C007AE21E /* MMTab.m in Sources */ = {isa = PBXBuildFile; fileRef = 92C6F6E325587E1C007AE21E /* MMTab.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		92C6F6E925587E1C007AE21E /* MMTabline.m in Sources */ = {isa = PBXBuildFile; fileRef = 92C6F6E525587E1C007AE21E /* MMTabline.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -444,6 +449,14 @@
 		90F84F312521F8760000268B /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/MainMenu.strings; sourceTree = "<group>"; };
 		90F84F322521F87F0000268B /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/MainMenu.strings; sourceTree = "<group>"; };
 		90F84F332521F8880000268B /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/MainMenu.strings; sourceTree = "<group>"; };
+		9218149C254D105F00E48243 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		925B55CD254B604A006B047E /* MMHoverButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMHoverButton.h; sourceTree = "<group>"; };
+		925B55D1254B604A006B047E /* MMHoverButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMHoverButton.m; sourceTree = "<group>"; };
+		925B55D6254B61AB006B047E /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		92C6F6E325587E1C007AE21E /* MMTab.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMTab.m; sourceTree = "<group>"; };
+		92C6F6E525587E1C007AE21E /* MMTabline.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMTabline.m; sourceTree = "<group>"; };
+		92C6F6E625587E1C007AE21E /* MMTabline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMTabline.h; sourceTree = "<group>"; };
+		92C6F6E725587E1C007AE21E /* MMTab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMTab.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -451,6 +464,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				925B55D7254B61AC006B047E /* QuartzCore.framework in Frameworks */,
 				1DFE25A50C527BC4003000F7 /* PSMTabBarControl.framework in Frameworks */,
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				1D8B5A53104AF9FF002E59D5 /* Carbon.framework in Frameworks */,
@@ -464,6 +478,7 @@
 		080E96DDFE201D6D7F000001 /* MacVim Source */ = {
 			isa = PBXGroup;
 			children = (
+				925B55CB254B604A006B047E /* MMTabline */,
 				1D44972111FCA9B400B0630F /* MMCoreTextView+ToolTip.m */,
 				1D6008890E96A0B2003763F0 /* MMFindReplaceController.h */,
 				1D60088A0E96A0B2003763F0 /* MMFindReplaceController.m */,
@@ -627,6 +642,7 @@
 				907FF7552521BDC200BADACB /* FindAndReplace.xib */,
 				907FF7522521BDA600BADACB /* Preferences.xib */,
 				907FF74F2521BCE200BADACB /* MainMenu.xib */,
+				9218149C254D105F00E48243 /* Assets.xcassets */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -634,6 +650,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				925B55D6254B61AB006B047E /* QuartzCore.framework */,
 				52A364721C4A5789005757EC /* Sparkle.framework */,
 				1D8B5A52104AF9FF002E59D5 /* Carbon.framework */,
 				1D493DB30C52533B00AB718C /* PSMTabBarControl.xcodeproj */,
@@ -843,6 +860,19 @@
 			name = MacVim;
 			sourceTree = "<group>";
 		};
+		925B55CB254B604A006B047E /* MMTabline */ = {
+			isa = PBXGroup;
+			children = (
+				925B55CD254B604A006B047E /* MMHoverButton.h */,
+				925B55D1254B604A006B047E /* MMHoverButton.m */,
+				92C6F6E725587E1C007AE21E /* MMTab.h */,
+				92C6F6E325587E1C007AE21E /* MMTab.m */,
+				92C6F6E625587E1C007AE21E /* MMTabline.h */,
+				92C6F6E525587E1C007AE21E /* MMTabline.m */,
+			);
+			path = MMTabline;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -987,6 +1017,7 @@
 				1D384A0E100D671700D3C22F /* KeyBinding.plist in Resources */,
 				907FF7542521BDA600BADACB /* Preferences.xib in Resources */,
 				907FF7512521BCE200BADACB /* MainMenu.xib in Resources */,
+				9218149D254D105F00E48243 /* Assets.xcassets in Resources */,
 				907FF7572521BDC300BADACB /* FindAndReplace.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1045,7 +1076,6 @@
 		};
 		90C052E1251E889500E2D81E /* Copy vimtutor */ = {
 			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -1072,6 +1102,7 @@
 			files = (
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
 				1D1474980C56703C0038FA2B /* MacVim.m in Sources */,
+				925B55D5254B604A006B047E /* MMHoverButton.m in Sources */,
 				1D1474A00C5673AE0038FA2B /* MMAppController.m in Sources */,
 				1D1474AA0C5677450038FA2B /* MMTextStorage.m in Sources */,
 				1D1474B00C5678370038FA2B /* MMTextView.m in Sources */,
@@ -1088,7 +1119,9 @@
 				1D145C7F0E5227CE00691AA0 /* MMTextViewHelper.m in Sources */,
 				1D60088B0E96A0B2003763F0 /* MMFindReplaceController.m in Sources */,
 				1DE63FFB0E71820F00959BDB /* MMCoreTextView.m in Sources */,
+				92C6F6E825587E1C007AE21E /* MMTab.m in Sources */,
 				1D44972211FCA9B400B0630F /* MMCoreTextView+ToolTip.m in Sources */,
+				92C6F6E925587E1C007AE21E /* MMTabline.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

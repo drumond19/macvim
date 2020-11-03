@@ -375,7 +375,7 @@ static BOOL isUnsafeMessage(int msgid);
 // This is called when a file is dragged on top of the tab bar but not a
 // particular tab (e.g. the new tab button). We will open the file list similar
 // to drag-and-dropped files.
-- (void)filesDraggedToTabBar:(NSArray *)filenames
+- (void)filesDraggedToTabline:(NSArray *)filenames
 {
     filenames = normalizeFilenames(filenames);
     ASLogInfo(@"%@", filenames);
