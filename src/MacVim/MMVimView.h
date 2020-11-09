@@ -14,7 +14,6 @@
 
 @class MMTabline;
 @class MMTab;
-@class PSMTabBarControl;
 @class MMTextView;
 @class MMScroller;
 @class MMVimController;
@@ -23,8 +22,6 @@
 @interface MMVimView : NSView {
     MMTabline           *tabline;
     MMTab               *tabToClose;
-    PSMTabBarControl    *tabBarControl;
-    NSTabView           *tabView;
     MMVimController     *vimController;
     BOOL                vimTaskSelectedTab;
     MMTextView          *textView;
@@ -45,11 +42,9 @@
 - (void)setDesiredRows:(int)r columns:(int)c;
 
 - (MMTabline *)tabline;
-- (PSMTabBarControl *)tabBarControl;
 - (IBAction)addNewTab:(id)sender;
 - (void)updateTabsWithData:(NSData *)data;
 - (void)selectTabWithIndex:(int)idx;
-- (NSTabViewItem *)addNewTabViewItem;
 - (MMTab *)addNewTab;
 
 - (void)createScrollbarWithIdentifier:(int32_t)ident type:(int)type;

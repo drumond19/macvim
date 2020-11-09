@@ -197,27 +197,10 @@ fsEventCallback(ConstFSEventStreamRef streamRef,
         [NSWindow setAllowsAutomaticWindowTabbing:NO];
     }
 
-    int tabMinWidthKey;
-    int tabMaxWidthKey;
-    int tabOptimumWidthKey;
-    if (shouldUseYosemiteTabBarStyle()) {
-        tabMinWidthKey = 120;
-        tabMaxWidthKey = 0;
-        tabOptimumWidthKey = 0;
-    } else {
-        tabMinWidthKey = 64;
-        tabMaxWidthKey = 6*64;
-        tabOptimumWidthKey = 132;
-    }
-
     NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:
         [NSNumber numberWithBool:NO],     MMNoWindowKey,
-        [NSNumber numberWithInt:tabMinWidthKey],
-                                          MMTabMinWidthKey,
-        [NSNumber numberWithInt:tabMaxWidthKey],
-                                          MMTabMaxWidthKey,
-        [NSNumber numberWithInt:tabOptimumWidthKey],
-                                          MMTabOptimumWidthKey,
+        [NSNumber numberWithInt:120],     MMTabMinWidthKey,
+        [NSNumber numberWithInt:200],     MMTabOptimumWidthKey,
         [NSNumber numberWithBool:YES],    MMShowAddTabButtonKey,
         [NSNumber numberWithInt:2],       MMTextInsetLeftKey,
         [NSNumber numberWithInt:1],       MMTextInsetRightKey,

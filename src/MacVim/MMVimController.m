@@ -691,10 +691,10 @@ static BOOL isUnsafeMessage(int msgid);
     } else if (UpdateTabBarMsgID == msgid) {
         [windowController updateTabsWithData:data];
     } else if (ShowTabBarMsgID == msgid) {
-        [windowController showTabBar:YES];
+        [windowController showTabline:YES];
         [self sendMessage:BackingPropertiesChangedMsgID data:nil];
     } else if (HideTabBarMsgID == msgid) {
-        [windowController showTabBar:NO];
+        [windowController showTabline:NO];
         [self sendMessage:BackingPropertiesChangedMsgID data:nil];
     } else if (SetTextDimensionsMsgID == msgid || LiveResizeMsgID == msgid ||
             SetTextDimensionsNoResizeWindowMsgID == msgid ||
