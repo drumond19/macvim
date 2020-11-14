@@ -23,7 +23,6 @@
     MMTabline           *tabline;
     MMTab               *tabToClose;
     MMVimController     *vimController;
-    BOOL                vimTaskSelectedTab;
     MMTextView          *textView;
     NSMutableArray      *scrollbars;
 }

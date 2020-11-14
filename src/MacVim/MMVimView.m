@@ -254,7 +254,6 @@ enum {
 
 - (void)updateTabsWithData:(NSData *)data
 {
-    NSLog(@"%s", __FUNCTION__);
     const void *p = [data bytes];
     const void *end = p + [data length];
     int tabIdx = 0;
@@ -321,17 +320,12 @@ enum {
         }
     }
 
-    // Remove unused tabs from the tabline.  Note that when a tab is closed
-    // the tabline will automatically select another tab, but we want Vim to
-    // take care of which tab to select so set the vimTaskSelectedTab flag to
-    // prevent the tab selection message to be passed on to the VimTask.
-    vimTaskSelectedTab = YES;
+    // Remove unused tabs from the tabline.
     int i, count = tabline.numberOfTabs;
     for (i = count-1; i >= tabIdx; --i) {
         MMTab *tv = [tabline tabAtIndex:i];
         [tabline closeTab:tv force:YES layoutImmediately:YES];
     }
-    vimTaskSelectedTab = NO;
 
     [self selectTabWithIndex:curtabIdx];
     // It would be better if we could scroll to the selected tab only if it
@@ -349,24 +343,15 @@ enum {
 
 - (void)selectTabWithIndex:(int)idx
 {
-    NSLog(@"%s: index= %d",__FUNCTION__, idx);
     if (idx < 0 || idx >= tabline.numberOfTabs) {
         ASLogWarn(@"No tab with index %d exists.", idx);
         return;
     }
-
     // Do not try to select a tab if already selected.
     if (idx != tabline.selectedTabIndex) {
-        NSLog(@"  selecting tab %d", idx);
-        vimTaskSelectedTab = YES;
         [tabline selectTabAtIndex:idx];
-        vimTaskSelectedTab = NO;
-
         // We might need to change the scrollbars that are visible.
         self.pendingPlaceScrollbars = YES;
-    }
-    else {
-        NSLog(@"  NOT selecting tab %d; already selected", idx);
     }
 }
 
@@ -375,9 +360,7 @@ enum {
     // NOTE!  A newly created tab is not by selected by default; Vim decides
     // which tab should be selected at all times.  However, the AppKit will
     // automatically select the first tab added to a tab view.
-    vimTaskSelectedTab = YES;
     NSUInteger index = [tabline addTabAtEnd];
-    vimTaskSelectedTab = NO;
     return [tabline tabAtIndex:index];
 }
 
@@ -532,23 +515,18 @@ enum {
 
 - (BOOL)tabline:(MMTabline *)tabline shouldSelectTabAtIndex:(NSUInteger)index
 {
-    NSLog(@"%s: index= %ld, vimTaskSelectedTab= %d", __FUNCTION__, index, vimTaskSelectedTab);
-    if (!vimTaskSelectedTab) {
-        // Propagate the selection message to Vim.
-        if (NSNotFound != index) {
-            int i = (int)index;   // HACK! Never more than MAXINT tabs?!
-            NSData *data = [NSData dataWithBytes:&i length:sizeof(int)];
-            [vimController sendMessage:SelectTabMsgID data:data];
-        }
+    // Propagate the selection message to Vim.
+    if (NSNotFound != index) {
+        int i = (int)index;   // HACK! Never more than MAXINT tabs?!
+        NSData *data = [NSData dataWithBytes:&i length:sizeof(int)];
+        [vimController sendMessage:SelectTabMsgID data:data];
     }
-    // Unless Vim selected the tab, return NO, and let Vim decide if the tab
-    // should get selected or not.
-    return vimTaskSelectedTab;
+    // Let Vim decide whether to select the tab or not.
+    return NO;
 }
 
 - (BOOL)tabline:(MMTabline *)tabline shouldCloseTabAtIndex:(NSUInteger)index
 {
-    NSLog(@"%s: index= %ld", __FUNCTION__, index);
     if (index >= 0 && index < tabline.numberOfTabs - 1) {
         tabToClose = [tabline tabAtIndex:index];
     }
@@ -563,7 +541,6 @@ enum {
 
 - (void)tabline:(MMTabline *)tabline didDragTab:(MMTab *)tab toIndex:(NSUInteger)index
 {
-    NSLog(@"%s", __FUNCTION__);
     NSMutableData *data = [NSMutableData data];
     [data appendBytes:&index length:sizeof(int)];
     [vimController sendMessage:DraggedTabMsgID data:data];
