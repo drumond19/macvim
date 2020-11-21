@@ -12,7 +12,6 @@ const CGFloat TabOverlap      = 2;
 
 @implementation MMTabline
 {
-    NSBox *_background;
     NSView *_tabsContainer;
     NSScrollView *_scrollView;
     NSMutableArray <MMTab *> *_tabs;
@@ -30,17 +29,10 @@ const CGFloat TabOverlap      = 2;
 {
     self = [super initWithFrame:frameRect];
     if (self) {
+        self.wantsLayer = YES; // we use -updateLayer to fill background
+        
         _tabs = [NSMutableArray new];
         _showsAddTabButton = YES; // get from NSUserDefaults
-        
-        // Add background first so it's at the bottom of view hierarchy
-        _background = [NSBox new];
-        _background.boxType = NSBoxCustom;
-        _background.borderWidth = 0;
-        _background.fillColor = [NSColor colorNamed:@"TablineFill"];
-        _background.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
-        _background.frame = self.bounds;
-        [self addSubview:_background];
         
         // This view holds the tab views.
         _tabsContainer = [NSView new];
@@ -78,6 +70,13 @@ const CGFloat TabOverlap      = 2;
 {
     [super layout];
     [self fixupLayoutWithAnimation:NO];
+}
+
+- (BOOL)wantsUpdateLayer { return YES; }
+
+- (void)updateLayer
+{
+    self.layer.backgroundColor = (self.tablineFillFgColor ?: [NSColor colorNamed:@"TablineFill"]).CGColor;
 }
 
 #pragma mark - Accessors
@@ -133,7 +132,7 @@ const CGFloat TabOverlap      = 2;
 - (void)setTablineFillFgColor:(NSColor *)color
 {
     _tablineFillFgColor = color;
-    _background.fillColor = color ?: [NSColor colorNamed:@"TablineFill"];
+    self.needsDisplay = YES;
 }
 
 - (NSUInteger)addTabAtEnd
