@@ -8,7 +8,7 @@ typedef struct TabWidth {
 
 const CGFloat OptimumTabWidth = 200;
 const CGFloat MinimumTabWidth = 100;
-const CGFloat TabOverlap      = 2;
+const CGFloat TabOverlap      = 4;
 
 @implementation MMTabline
 {

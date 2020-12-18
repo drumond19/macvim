@@ -18,7 +18,7 @@
         _circle = [NSBox new];
         _circle.boxType = NSBoxCustom;
         _circle.borderWidth = 0;
-        _circle.alphaValue = 0.12;
+        _circle.alphaValue = 0.16;
         _circle.fillColor = NSColor.clearColor;
         _circle.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
         _circle.frame = self.bounds;
@@ -44,7 +44,7 @@
         return YES;
     }];
     self.alternateImage = [NSImage imageWithSize:image.size flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
-        [[fillColor colorWithAlphaComponent:0.15] set];
+        [[fillColor colorWithAlphaComponent:0.2] set];
         [[NSBezierPath bezierPathWithOvalInRect:dstRect] fill];
         [super.image drawInRect:dstRect];
         return YES;

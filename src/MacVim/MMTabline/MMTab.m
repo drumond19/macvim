@@ -52,8 +52,8 @@
         [self addSubview:_titleLabel];
         
         NSDictionary *viewDict = NSDictionaryOfVariableBindings(_closeButton, _titleLabel);
-        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-7-[_closeButton]-(>=5)-[_titleLabel]-(>=8)-|" options:NSLayoutFormatAlignAllCenterY metrics:nil views:viewDict]];
-        [self addConstraint:[NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:_titleLabel attribute:NSLayoutAttributeCenterY multiplier:1 constant:0]];
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-9-[_closeButton]-(>=5)-[_titleLabel]-(>=16)-|" options:NSLayoutFormatAlignAllCenterY metrics:nil views:viewDict]];
+        [self addConstraint:[NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:_titleLabel attribute:NSLayoutAttributeCenterY multiplier:1 constant:-2]];
         NSLayoutConstraint *centerConstraint = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:_titleLabel attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
         centerConstraint.priority = NSLayoutPriorityFittingSizeCompression+1;
         [self addConstraint:centerConstraint];
@@ -101,7 +101,6 @@
     if (state == MMTabStateSelected) {
         _closeButton.alphaValue = 1;
         _titleLabel.textColor = _tabline.tablineSelFgColor ?: NSColor.controlTextColor;
-        _titleLabel.font = [NSFont systemFontOfSize:11 weight:NSFontWeightMedium];
         self.fillColor = _tabline.tablineSelBgColor ?: [NSColor colorNamed:@"TablineSel"];
         self.shadow = _shadow;
     }
@@ -115,13 +114,11 @@
             _titleLabel.animator.textColor = _tabline.tablineFgColor ?: NSColor.disabledControlTextColor;
             self.animator.fillColor = _tabline.tablineBgColor ?: [NSColor colorNamed:@"Tabline"];
         }
-        _titleLabel.font = [NSFont systemFontOfSize:11];
         self.shadow = nil;
     }
     else { // state == MMTabStateUnselectedHover
         _closeButton.animator.alphaValue = 1;
         _titleLabel.animator.textColor = _tabline.tablineSelFgColor ?: NSColor.controlTextColor;
-        _titleLabel.font = [NSFont systemFontOfSize:11];
         self.animator.fillColor = self.unselectedHoverColor;
         self.animator.shadow = _shadow;
     }
@@ -144,13 +141,14 @@
 - (void)drawRect:(NSRect)dirtyRect
 {
     [self.fillColor set];
+    CGFloat maxX = NSMaxX(self.bounds);
     NSBezierPath *p = [NSBezierPath new];
     [p moveToPoint:NSZeroPoint];
-    [p lineToPoint:NSMakePoint(3.6, NSMaxY(self.bounds) - 2.5)];
-    [p curveToPoint:NSMakePoint(6.5, NSMaxY(self.bounds)) controlPoint1:NSMakePoint(3.8, NSMaxY(self.bounds) - 1) controlPoint2:NSMakePoint(5.1, NSMaxY(self.bounds))];
-    [p lineToPoint:NSMakePoint(NSMaxX(self.bounds) - 6.5, NSMaxY(self.bounds))];
-    [p curveToPoint:NSMakePoint(NSMaxX(self.bounds) - 3.6, NSMaxY(self.bounds) - 2.5) controlPoint1:NSMakePoint(NSMaxX(self.bounds) - 5.1, NSMaxY(self.bounds)) controlPoint2:NSMakePoint(NSMaxX(self.bounds) - 3.8, NSMaxY(self.bounds) - 1)];
-    [p lineToPoint:NSMakePoint(NSMaxX(self.bounds), 0)];
+    [p lineToPoint:NSMakePoint(5.41, 20.76)];
+    [p curveToPoint:NSMakePoint(8.32, 23) controlPoint1: NSMakePoint(5.76, 22.08) controlPoint2: NSMakePoint(6.95, 23)];
+    [p lineToPoint:NSMakePoint(maxX - 8.32, 23)];
+    [p curveToPoint: NSMakePoint(maxX - 5.41, 20.76) controlPoint1: NSMakePoint(maxX - 6.95, 23) controlPoint2: NSMakePoint(maxX - 5.76, 22.08)];
+    [p lineToPoint:NSMakePoint(maxX, 0)];
     [p closePath];
     [p fill];
 }

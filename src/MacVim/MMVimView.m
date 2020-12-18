@@ -478,7 +478,7 @@ enum {
     b2 = (b > 0.5) ? b - 0.15 : b + 0.15;
     tabline.tablineBgColor = [NSColor colorWithHue:h saturation:s brightness:b2 alpha:a];
     
-    b3 = (b > 0.5) ? b - 0.25 : b + 0.25;
+    b3 = (b > 0.5) ? b - 0.30 : b + 0.30;
     tabline.tablineFillFgColor = [NSColor colorWithHue:h saturation:s brightness:b3 alpha:a];
 
     [fore getHue:&h saturation:&s brightness:&b alpha:&a];
