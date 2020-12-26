@@ -51,26 +51,36 @@
     }];
 }
 
+- (void)setEnabled:(BOOL)enabled
+{
+    [super setEnabled:enabled];
+    [self evaluateHover];
+}
+
 - (void)updateTrackingAreas
 {
     [self removeTrackingArea:_trackingArea];
     _trackingArea = [[NSTrackingArea alloc] initWithRect:self.bounds options:(NSTrackingMouseEnteredAndExited | NSTrackingActiveInKeyWindow) owner:self userInfo:nil];
     [self addTrackingArea:_trackingArea];
-    
+    [self evaluateHover];
+    [super updateTrackingAreas];
+}
+
+- (void)evaluateHover
+{
     NSPoint mouseLocation = [self.window mouseLocationOutsideOfEventStream];
-    mouseLocation = [self convertPoint: mouseLocation fromView: nil];
+    mouseLocation = [self convertPoint:mouseLocation fromView:nil];
     if (NSPointInRect(mouseLocation, self.bounds)) {
-        _circle.animator.fillColor = NSColor.textColor;
-    }
-    else {
+        if (self.enabled) _circle.animator.fillColor = self.fgColor ?: NSColor.controlTextColor;
+        else _circle.animator.fillColor = NSColor.clearColor;
+    } else {
         _circle.animator.fillColor = NSColor.clearColor;
     }
-    [super updateTrackingAreas];
 }
 
 - (void)mouseEntered:(NSEvent *)event
 {
-    _circle.animator.fillColor = self.fgColor ?: NSColor.controlTextColor;
+    if (self.enabled) _circle.animator.fillColor = self.fgColor ?: NSColor.controlTextColor;
 }
 
 - (void)mouseExited:(NSEvent *)event

@@ -18,6 +18,7 @@ NSString *MMTabMinWidthKey                = @"MMTabMinWidth";
 NSString *MMTabMaxWidthKey                = @"MMTabMaxWidth";
 NSString *MMTabOptimumWidthKey            = @"MMTabOptimumWidth";
 NSString *MMShowAddTabButtonKey           = @"MMShowAddTabButton";
+NSString *MMShowTabScrollButtonsKey       = @"MMShowTabScrollButtons";
 NSString *MMTextInsetLeftKey              = @"MMTextInsetLeft";
 NSString *MMTextInsetRightKey             = @"MMTextInsetRight";
 NSString *MMTextInsetTopKey               = @"MMTextInsetTop";

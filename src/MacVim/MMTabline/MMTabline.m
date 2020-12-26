@@ -10,12 +10,25 @@ const CGFloat OptimumTabWidth = 200;
 const CGFloat MinimumTabWidth = 100;
 const CGFloat TabOverlap      = 4;
 
+MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL action, BOOL continuous) {
+    MMHoverButton *button = [MMHoverButton new];
+    button.image = [NSImage imageNamed:imageName];
+    button.translatesAutoresizingMaskIntoConstraints = NO;
+    button.target = tabline;
+    button.action = action;
+    button.continuous = continuous;
+    [button sizeToFit];
+    [tabline addSubview:button];
+    return button;
+}
+
 @implementation MMTabline
 {
     NSView *_tabsContainer;
     NSScrollView *_scrollView;
     NSMutableArray <MMTab *> *_tabs;
     NSTrackingArea *_trackingArea;
+    NSLayoutConstraint *_tabScrollButtonsLeadingConstraint;
     NSLayoutConstraint *_addTabButtonTrailingConstraint;
     BOOL _pendingFixupLayout;
     MMTab *_selectedTab;
@@ -23,6 +36,8 @@ const CGFloat TabOverlap      = 4;
     CGFloat _xOffsetForDrag;
     NSInteger _initialDraggedTabIndex;
     NSInteger _finalDraggedTabIndex;
+    MMHoverButton *_leftScrollButton;
+    MMHoverButton *_rightScrollButton;
 }
 
 - (instancetype)initWithFrame:(NSRect)frameRect
@@ -33,6 +48,7 @@ const CGFloat TabOverlap      = 4;
         
         _tabs = [NSMutableArray new];
         _showsAddTabButton = YES; // get from NSUserDefaults
+        _showsTabScrollButtons = YES; // get from NSUserDefaults
         
         // This view holds the tab views.
         _tabsContainer = [NSView new];
@@ -46,16 +62,16 @@ const CGFloat TabOverlap      = 4;
         _scrollView.documentView = _tabsContainer;
         [self addSubview:_scrollView];
 
-        _addTabButton = [MMHoverButton new];
-        _addTabButton.image = [NSImage imageNamed:@"AddTabButton"];
-        _addTabButton.translatesAutoresizingMaskIntoConstraints = NO;
-        _addTabButton.target = self;
-        _addTabButton.action = @selector(addTabAtEnd);
-        [_addTabButton sizeToFit];
-        [self addSubview:_addTabButton];
+        _addTabButton = MakeHoverButton(self, @"AddTabButton", @selector(addTabAtEnd), NO);
+        _leftScrollButton = MakeHoverButton(self, @"ScrollLeftButton", @selector(scrollLeftOneTab), YES);
+        _rightScrollButton = MakeHoverButton(self, @"ScrollRightButton", @selector(scrollRightOneTab), YES);
 
-        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_scrollView]-5-[_addTabButton]" options:NSLayoutFormatAlignAllCenterY metrics:nil views:NSDictionaryOfVariableBindings(_scrollView, _addTabButton)]];
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[_leftScrollButton][_rightScrollButton]-5-[_scrollView]-5-[_addTabButton]" options:NSLayoutFormatAlignAllCenterY metrics:nil views:NSDictionaryOfVariableBindings(_scrollView, _leftScrollButton, _rightScrollButton, _addTabButton)]];
         [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_scrollView]|" options:0 metrics:nil views:@{@"_scrollView":_scrollView}]];
+        
+        CGFloat scrollButtonsLeadingMargin = _showsTabScrollButtons ? 5 : -((NSWidth(_leftScrollButton.frame) * 2) + 5);
+        _tabScrollButtonsLeadingConstraint = [NSLayoutConstraint constraintWithItem:_leftScrollButton attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeLeading multiplier:1 constant:scrollButtonsLeadingMargin];
+        [self addConstraint:_tabScrollButtonsLeadingConstraint];
         
         CGFloat addButtonTrailingMargin = _showsAddTabButton ? 5 : -(NSWidth(_addTabButton.frame) + 5);
         _addTabButtonTrailingConstraint = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:_addTabButton attribute:NSLayoutAttributeTrailing multiplier:1 constant:addButtonTrailingMargin];
@@ -104,6 +120,14 @@ const CGFloat TabOverlap      = 4;
     }
 }
 
+- (void)setShowsTabScrollButtons:(BOOL)showsTabScrollButtons
+{
+    if (_showsTabScrollButtons != showsTabScrollButtons) {
+        _showsTabScrollButtons = showsTabScrollButtons;
+        _tabScrollButtonsLeadingConstraint.constant = showsTabScrollButtons ? 5 : -((NSWidth(_leftScrollButton.frame) * 2) + 5);
+    }
+}
+
 - (void)setTablineBgColor:(NSColor *)color
 {
     _tablineBgColor = color;
@@ -126,6 +150,8 @@ const CGFloat TabOverlap      = 4;
 {
     _tablineSelFgColor = color;
     _addTabButton.fgColor = color;
+    _leftScrollButton.fgColor = color;
+    _rightScrollButton.fgColor = color;
     for (MMTab *tab in _tabs) tab.state = tab.state;
 }
 
@@ -298,6 +324,7 @@ NSComparisonResult SortTabsForZOrder(MMTab *tab1, MMTab *tab2, void *draggedTab)
     frame.size.width = NSWidth(frame) < NSWidth(_scrollView.frame) ? NSWidth(_scrollView.frame) : NSWidth(frame);
     if (shouldAnimate) _tabsContainer.animator.frame = frame;
     else _tabsContainer.frame = frame;
+    [self updateTabScrollButtonsEnabledState];
 }
 
 #pragma mark - Mouse
@@ -305,15 +332,20 @@ NSComparisonResult SortTabsForZOrder(MMTab *tab1, MMTab *tab2, void *draggedTab)
 - (void)updateTrackingAreas
 {
     [self removeTrackingArea:_trackingArea];
-    _trackingArea = [[NSTrackingArea alloc] initWithRect:self.bounds options:(NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInKeyWindow) owner:self userInfo:nil];
+    _trackingArea = [[NSTrackingArea alloc] initWithRect:_scrollView.frame options:(NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInKeyWindow) owner:self userInfo:nil];
     [self addTrackingArea:_trackingArea];
     [super updateTrackingAreas];
 }
 
 - (BOOL)mouse:(NSPoint)windowLocation inTab:(MMTab *)tab
 {
-    NSPoint location = [tab convertPoint:windowLocation fromView:nil];
-    return [tab mouse:location inRect:tab.bounds];
+    // YES if windowLocation is inside _scrollview AND tab.
+    NSPoint location = [_scrollView convertPoint:windowLocation fromView:nil];
+    if ([_scrollView mouse:location inRect:_scrollView.bounds]) {
+        location = [tab convertPoint:windowLocation fromView:nil];
+        return [tab mouse:location inRect:tab.bounds];
+    }
+    return NO;
 }
 
 - (NSUInteger)indexOfTabAtMouse:(NSPoint)windowLocation
@@ -420,6 +452,21 @@ NSComparisonResult SortTabsForZOrder(MMTab *tab1, MMTab *tab2, void *draggedTab)
 - (void)didScroll:(NSNotification *)note
 {
     [self evaluateHoverStateForMouse:[self.window mouseLocationOutsideOfEventStream]];
+    [self updateTabScrollButtonsEnabledState];
+}
+
+- (void)updateTabScrollButtonsEnabledState
+{
+    // Enable scroll buttons if there is scrollable content
+    // on either side of _scrollView.
+    NSRect clipBounds = _scrollView.contentView.bounds;
+    if (NSWidth(_tabsContainer.frame) <= NSWidth(clipBounds)) {
+        _leftScrollButton.enabled = NO;
+        _rightScrollButton.enabled = NO;
+    } else {
+        _leftScrollButton.enabled  = clipBounds.origin.x > 0;
+        _rightScrollButton.enabled = clipBounds.origin.x + NSWidth(clipBounds) < NSMaxX(_tabsContainer.frame);
+    }
 }
 
 - (void)scrollTabToVisibleAtIndex:(NSUInteger)index
@@ -440,6 +487,35 @@ NSComparisonResult SortTabsForZOrder(MMTab *tab1, MMTab *tab2, void *draggedTab)
         _scrollView.contentView.animator.bounds = clipBounds;
     }
 }
+
+- (void)scrollLeftOneTab
+{
+    NSRect clipBounds = _scrollView.contentView.bounds;
+    for (NSUInteger i = _tabs.count - 1; i >= 0; i--) {
+        NSRect tabFrame = _tabs[i].frame;
+        if (!NSContainsRect(clipBounds, tabFrame)) {
+            if (NSMinX(tabFrame) < NSMinX(clipBounds)) {
+                [self scrollTabToVisibleAtIndex:i];
+                break;
+            }
+        }
+    }
+}
+
+- (void)scrollRightOneTab
+{
+    NSRect clipBounds = _scrollView.contentView.bounds;
+    for (NSUInteger i = 0; i < _tabs.count; i++) {
+        NSRect tabFrame = _tabs[i].frame;
+        if (!NSContainsRect(clipBounds, tabFrame)) {
+            if (NSMaxX(tabFrame) > NSMaxX(clipBounds)) {
+                [self scrollTabToVisibleAtIndex:i];
+                break;
+            }
+        }
+    }
+}
+
 
 #pragma mark - Drag and drop
 

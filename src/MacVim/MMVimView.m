@@ -114,6 +114,7 @@ enum {
     tabline.delegate = self;
     tabline.hidden = YES;
     tabline.showsAddTabButton = [ud boolForKey:MMShowAddTabButtonKey];
+    tabline.showsTabScrollButtons = [ud boolForKey:MMShowTabScrollButtonsKey];
     tabline.optimumTabWidth = [ud integerForKey:MMTabOptimumWidthKey];
     tabline.minimumTabWidth = [ud integerForKey:MMTabMinWidthKey];
     tabline.addTabButton.target = self;
