@@ -8,7 +8,7 @@ typedef struct TabWidth {
 
 const CGFloat OptimumTabWidth = 200;
 const CGFloat MinimumTabWidth = 100;
-const CGFloat TabOverlap      = 4;
+const CGFloat TabOverlap      = 6;
 
 MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL action, BOOL continuous) {
     MMHoverButton *button = [MMHoverButton new];

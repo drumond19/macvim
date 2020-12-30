@@ -4,7 +4,7 @@
 
 // A tabline containing one or more tabs.
 
-#define MMTablineHeight (27)
+#define MMTablineHeight (23)
 
 @protocol MMTablineDelegate;
 

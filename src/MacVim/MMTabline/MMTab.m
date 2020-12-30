@@ -53,13 +53,13 @@
         
         NSDictionary *viewDict = NSDictionaryOfVariableBindings(_closeButton, _titleLabel);
         [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-9-[_closeButton]-(>=5)-[_titleLabel]-(>=16)-|" options:NSLayoutFormatAlignAllCenterY metrics:nil views:viewDict]];
-        [self addConstraint:[NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:_titleLabel attribute:NSLayoutAttributeCenterY multiplier:1 constant:-2]];
+        [self addConstraint:[NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:_titleLabel attribute:NSLayoutAttributeCenterY multiplier:1 constant:0]];
         NSLayoutConstraint *centerConstraint = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:_titleLabel attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
         centerConstraint.priority = NSLayoutPriorityFittingSizeCompression+1;
         [self addConstraint:centerConstraint];
 
         _shadow = [NSShadow new];
-        _shadow.shadowColor = [NSColor colorWithWhite:0 alpha:0.4];
+        _shadow.shadowColor = [NSColor colorWithWhite:0 alpha:0.3];
         _shadow.shadowBlurRadius = 2;
         
         self.state = MMTabStateUnselected;
@@ -143,13 +143,22 @@
     [self.fillColor set];
     CGFloat maxX = NSMaxX(self.bounds);
     NSBezierPath *p = [NSBezierPath new];
-    [p moveToPoint:NSZeroPoint];
-    [p lineToPoint:NSMakePoint(5.41, 20.76)];
-    [p curveToPoint:NSMakePoint(8.32, 23) controlPoint1: NSMakePoint(5.76, 22.08) controlPoint2: NSMakePoint(6.95, 23)];
-    [p lineToPoint:NSMakePoint(maxX - 8.32, 23)];
-    [p curveToPoint: NSMakePoint(maxX - 5.41, 20.76) controlPoint1: NSMakePoint(maxX - 6.95, 23) controlPoint2: NSMakePoint(maxX - 5.76, 22.08)];
-    [p lineToPoint:NSMakePoint(maxX, 0)];
+    [p moveToPoint:NSMakePoint(2, 0)];
+    [p lineToPoint:NSMakePoint(5.6, 20.5)];
+    [p curveToPoint: NSMakePoint(8.5, 23) controlPoint1: NSMakePoint(5.8, 22) controlPoint2: NSMakePoint(7.1, 23)];
+    [p lineToPoint:NSMakePoint(maxX - 8.5, 23)];
+    [p curveToPoint:NSMakePoint(maxX - 5.6, 20.5) controlPoint1: NSMakePoint(maxX - 7.1, 23) controlPoint2: NSMakePoint(maxX - 5.8, 22)];
+    [p lineToPoint:NSMakePoint(maxX - 2, 0)];
     [p closePath];
+    // On macOS 11, translate the tab down 0.5pt to provide a thin
+    // line between the top of the tab and the window's title bar.
+    // It looks better given the new way macOS 11 draws title bars.
+    // Older macOS versions don't need this.
+    if (@available(macOS 11.0, *)) {
+        NSAffineTransform *transform = [NSAffineTransform new];
+        [transform translateXBy:0 yBy:-0.5];
+        [p transformUsingAffineTransform:transform];
+    }
     [p fill];
 }
 
