@@ -251,6 +251,39 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
     return _tabs[index];
 }
 
+- (void)setTablineSelBackground:(NSColor *)back foreground:(NSColor *)fore
+{
+    // Reset to default tabline colors if user doesn't want auto-generated ones.
+    if ([NSUserDefaults.standardUserDefaults boolForKey:@"MMDefaultTablineColors"]) {
+        self.tablineBgColor = nil;
+        self.tablineFgColor = nil;
+        self.tablineSelBgColor = nil;
+        self.tablineSelFgColor = nil;
+        self.tablineFillFgColor = nil;
+        return;
+    }
+
+    self.tablineSelBgColor = back;
+    self.tablineSelFgColor = fore;
+
+    // Set the colors for the tabline based on the default background and
+    // foreground colors. We get the brightness component of back and fore
+    // and then adjust up or down depending on whether the color is more
+    // or less than 50% bright.
+    CGFloat h, s, b, b2, b3, b4, a;
+    
+    [back getHue:&h saturation:&s brightness:&b alpha:&a];
+    b3 = (b > 0.5) ? b - 0.25 : b + 0.35;
+    self.tablineFillFgColor = [NSColor colorWithHue:h saturation:s brightness:b3 alpha:a];
+
+    b2 = (b3 + b) / 2.;
+    self.tablineBgColor = [NSColor colorWithHue:h saturation:s brightness:b2 alpha:a];
+
+    [fore getHue:&h saturation:&s brightness:&b alpha:&a];
+    b4 = (b2 > 0.5) ? b2 - 0.25 : b2 + 0.25;
+    self.tablineFgColor = [NSColor colorWithHue:h saturation:s brightness:b4 alpha:a];
+}
+
 #pragma mark - Helpers
 
 NSComparisonResult SortTabsForZOrder(MMTab *tab1, MMTab *tab2, void *draggedTab)

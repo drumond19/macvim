@@ -454,44 +454,11 @@ enum {
     }
 }
 
-- (void)setTablineColorsBasedOnBackground:(NSColor *)back foreground:(NSColor *)fore
-{
-    // Reset to default tabline colors if user doesn't want auto-generated ones.
-    if ([NSUserDefaults.standardUserDefaults boolForKey:@"MMDefaultTablineColors"]) {
-        tabline.tablineBgColor = nil;
-        tabline.tablineFgColor = nil;
-        tabline.tablineSelBgColor = nil;
-        tabline.tablineSelFgColor = nil;
-        tabline.tablineFillFgColor = nil;
-        return;
-    }
-
-    tabline.tablineSelBgColor = back;
-    tabline.tablineSelFgColor = fore;
-
-    // This is a naïve way of setting colors for the tabline based on the
-    // default background and foreground colors. We get the brightness
-    // component of back and fore and then adjust up or down depending on
-    // whether the color is more or less than 50% bright.
-    CGFloat h, s, b, b2, b3, b4, a;
-    
-    [back getHue:&h saturation:&s brightness:&b alpha:&a];
-    b2 = (b > 0.5) ? b - 0.15 : b + 0.15;
-    tabline.tablineBgColor = [NSColor colorWithHue:h saturation:s brightness:b2 alpha:a];
-    
-    b3 = (b > 0.5) ? b - 0.30 : b + 0.30;
-    tabline.tablineFillFgColor = [NSColor colorWithHue:h saturation:s brightness:b3 alpha:a];
-
-    [fore getHue:&h saturation:&s brightness:&b alpha:&a];
-    b4 = (b2 > 0.5) ? b2 - 0.25 : b2 + 0.25;
-    tabline.tablineFgColor = [NSColor colorWithHue:h saturation:s brightness:b4 alpha:a];
-}
-
 - (void)setDefaultColorsBackground:(NSColor *)back foreground:(NSColor *)fore
 {
     [textView setDefaultColorsBackground:back foreground:fore];
     
-    [self setTablineColorsBasedOnBackground:back foreground:fore];
+    [tabline setTablineSelBackground:back foreground:fore];
 
     CALayer *backedLayer = [self layer];
     if (backedLayer) {

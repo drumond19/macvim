@@ -31,6 +31,7 @@
 - (void)selectTabAtIndex:(NSUInteger)index;
 - (MMTab *)tabAtIndex:(NSUInteger)index;
 - (void)scrollTabToVisibleAtIndex:(NSUInteger)index;
+- (void)setTablineSelBackground:(NSColor *)back foreground:(NSColor *)fore;
 
 @end
 
