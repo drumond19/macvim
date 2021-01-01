@@ -263,25 +263,31 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
         return;
     }
 
-    self.tablineSelBgColor = back;
-    self.tablineSelFgColor = fore;
-
     // Set the colors for the tabline based on the default background and
-    // foreground colors. We get the brightness component of back and fore
-    // and then adjust up or down depending on whether the color is more
-    // or less than 50% bright.
-    CGFloat h, s, b, b2, b3, b4, a;
+    // foreground colors. Calculate brightness according to a formula from
+    // the W3C that gives brightness as the eye perceives it. Then lighten
+    // or darken the default colors based on whether brightness is greater
+    // than 50% to achieve good visual contrast.
+    // www.w3.org/WAI/ER/WD-AERT/#color-contrast
+    CGFloat r, g, b, brightness;
+    [back getRed:&r green:&g blue:&b alpha:NULL];
+    brightness = r * 0.299 + g * 0.114 + b * 0.587;
     
-    [back getHue:&h saturation:&s brightness:&b alpha:&a];
-    b3 = (b > 0.5) ? b - 0.25 : b + 0.35;
-    self.tablineFillFgColor = [NSColor colorWithHue:h saturation:s brightness:b3 alpha:a];
+    self.tablineSelBgColor = back;
 
-    b2 = (b3 + b) / 2.;
-    self.tablineBgColor = [NSColor colorWithHue:h saturation:s brightness:b2 alpha:a];
+    self.tablineSelFgColor = (brightness > 0.5)
+        ? [fore blendedColorWithFraction:0.6 ofColor:NSColor.blackColor]
+        : [fore blendedColorWithFraction:0.6 ofColor:NSColor.whiteColor];
 
-    [fore getHue:&h saturation:&s brightness:&b alpha:&a];
-    b4 = (b2 > 0.5) ? b2 - 0.25 : b2 + 0.25;
-    self.tablineFgColor = [NSColor colorWithHue:h saturation:s brightness:b4 alpha:a];
+    self.tablineBgColor = (brightness > 0.5)
+        ? [back blendedColorWithFraction:0.12 ofColor:NSColor.blackColor]
+        : [back blendedColorWithFraction:0.20 ofColor:NSColor.whiteColor];
+
+    self.tablineFgColor = [self.tablineSelFgColor blendedColorWithFraction:0.5 ofColor:self.tablineBgColor];
+
+    self.tablineFillFgColor = (brightness > 0.5)
+        ? [back blendedColorWithFraction:0.25 ofColor:NSColor.blackColor]
+        : [back blendedColorWithFraction:0.40 ofColor:NSColor.whiteColor];
 }
 
 #pragma mark - Helpers
