@@ -530,7 +530,7 @@ NSComparisonResult SortTabsForZOrder(MMTab *tab1, MMTab *tab2, void *draggedTab)
 - (void)scrollLeftOneTab
 {
     NSRect clipBounds = _scrollView.contentView.bounds;
-    for (NSUInteger i = _tabs.count - 1; i >= 0; i--) {
+    for (NSInteger i = _tabs.count - 1; i >= 0; i--) {
         NSRect tabFrame = _tabs[i].frame;
         if (!NSContainsRect(clipBounds, tabFrame)) {
             if (NSMinX(tabFrame) < NSMinX(clipBounds)) {
