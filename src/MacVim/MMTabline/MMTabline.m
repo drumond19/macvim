@@ -114,6 +114,14 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
 
 - (void)setShowsAddTabButton:(BOOL)showsAddTabButton
 {
+    // showsAddTabButton:
+    //   The trailing constraint is a 5pt margin.
+    // !showsAddTabButton:
+    //   The trailing constraint is a negative margin so the add
+    //   button is clipped out of the right side of the view. The
+    //   amount of negative margin is the width of the button plus
+    //   the 5 to account for the margin between the scroll view
+    //   and the button.
     if (_showsAddTabButton != showsAddTabButton) {
         _showsAddTabButton = showsAddTabButton;
         _addTabButtonTrailingConstraint.constant = showsAddTabButton ? 5 : -(NSWidth(_addTabButton.frame) + 5);;
@@ -122,9 +130,18 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
 
 - (void)setShowsTabScrollButtons:(BOOL)showsTabScrollButtons
 {
+    // showsTabScrollButtons:
+    //   The leading constraint is a 5pt margin.
+    // !showsTabScrollButtons:
+    //   The leading constraint is a negative margin so the scroll
+    //   buttons are clipped out of the left side of the view. The
+    //   amount of the negative margin is the width of each button
+    //   plus 5 to account for the margin between the buttons and
+    //   the scroll view plus 2 to account for the 2pt shadow inset
+    //   of each tab (see -drawRect: in MMTab.m).
     if (_showsTabScrollButtons != showsTabScrollButtons) {
         _showsTabScrollButtons = showsTabScrollButtons;
-        _tabScrollButtonsLeadingConstraint.constant = showsTabScrollButtons ? 5 : -((NSWidth(_leftScrollButton.frame) * 2) + 5);
+        _tabScrollButtonsLeadingConstraint.constant = showsTabScrollButtons ? 5 : -((NSWidth(_leftScrollButton.frame) * 2) + 5 + 2);
     }
 }
 
