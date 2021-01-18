@@ -1,3 +1,4 @@
+#import <time.h>
 #import <QuartzCore/QuartzCore.h>
 #import "MMTabline.h"
 
@@ -554,6 +555,19 @@ NSComparisonResult SortTabsForZOrder(MMTab *tab1, MMTab *tab2, void *draggedTab)
 {
     if (_tabs.count == 0) return;
     
+    // Get the amount of time elapsed between the previous invocation
+    // of this method and now. Use this elapsed time to set the animation
+    // duration such that rapid invocations of this method result in
+    // faster animations. For example, the user might hold down the tab
+    // scrolling buttons (causing them to repeatedly fire) or they might
+    // rapidly click them.
+    static NSTimeInterval lastTime = 0;
+    struct timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    NSTimeInterval currentTime = t.tv_sec + t.tv_nsec * 1.e-9;
+    NSTimeInterval elapsedTime = currentTime - lastTime;
+    lastTime = currentTime;
+
     NSRect tabFrame = _tabs[index].frame;
     NSRect clipBounds = _scrollView.contentView.bounds;
     // One side or the other of the selected tab is clipped.
@@ -565,7 +579,10 @@ NSComparisonResult SortTabsForZOrder(MMTab *tab1, MMTab *tab2, void *draggedTab)
             // Left side of the selected tab is clipped.
             clipBounds.origin.x = tabFrame.origin.x;
         }
+        [NSAnimationContext beginGrouping];
+        [NSAnimationContext.currentContext setDuration:elapsedTime < 0.2 ? 0.05 : 0.2];
         _scrollView.contentView.animator.bounds = clipBounds;
+        [NSAnimationContext endGrouping];
     }
 }
 
