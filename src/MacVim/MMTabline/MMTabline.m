@@ -38,6 +38,7 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
     NSInteger _finalDraggedTabIndex;
     MMHoverButton *_leftScrollButton;
     MMHoverButton *_rightScrollButton;
+    id _scrollWheelEventMonitor;
 }
 
 - (instancetype)initWithFrame:(NSRect)frameRect
@@ -78,6 +79,30 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
         [self addConstraint:_addTabButtonTrailingConstraint];
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didScroll:) name:NSViewBoundsDidChangeNotification object:_scrollView.contentView];
+
+        // Monitor for scroll wheel events so we can scroll the tabline
+        // horizontally without the user having to hold down SHIFT.
+        _scrollWheelEventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:NSEventMaskScrollWheel handler:^NSEvent * _Nullable(NSEvent * _Nonnull event) {
+            NSPoint location = [_scrollView convertPoint:event.locationInWindow fromView:nil];
+            // We want events:
+            //   where the mouse is over the _scrollView
+            //   and where the user is not modifying it with the SHIFT key
+            //   and initiated by the scroll wheel and not the trackpad
+            if ([_scrollView mouse:location inRect:_scrollView.bounds]
+                && !event.modifierFlags
+                && !event.hasPreciseScrollingDeltas)
+            {
+                // Create a new scroll wheel event based on the original,
+                // but set the new deltaX to the original's deltaY.
+                // stackoverflow.com/a/38991946/111418
+                CGEventRef cgEvent = CGEventCreateCopy(event.CGEvent);
+                CGEventSetIntegerValueField(cgEvent, kCGScrollWheelEventDeltaAxis2, event.scrollingDeltaY);
+                NSEvent *newEvent = [NSEvent eventWithCGEvent:cgEvent];
+                CFRelease(cgEvent);
+                return newEvent;
+            }
+            return event;
+        }];
     }
     return self;
 }
