@@ -1,6 +1,7 @@
 #import <time.h>
 #import <QuartzCore/QuartzCore.h>
 #import "MMTabline.h"
+#import "Miscellaneous.h"
 
 typedef struct TabWidth {
     CGFloat width;
@@ -13,7 +14,7 @@ const CGFloat TabOverlap      = 6;
 
 MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL action, BOOL continuous) {
     MMHoverButton *button = [MMHoverButton new];
-    button.image = [NSImage imageNamed:imageName];
+    button.image = [MMHoverButton imageNamed:imageName];
     button.translatesAutoresizingMaskIntoConstraints = NO;
     button.target = tabline;
     button.action = action;
@@ -41,6 +42,12 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
     MMHoverButton *_rightScrollButton;
     id _scrollWheelEventMonitor;
 }
+
+@synthesize tablineBgColor = _tablineBgColor;
+@synthesize tablineFgColor = _tablineFgColor;
+@synthesize tablineSelBgColor = _tablineSelBgColor;
+@synthesize tablineSelFgColor = _tablineSelFgColor;
+@synthesize tablineFillFgColor = _tablineFillFgColor;
 
 - (instancetype)initWithFrame:(NSRect)frameRect
 {
@@ -118,7 +125,12 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
 
 - (void)updateLayer
 {
-    self.layer.backgroundColor = (self.tablineFillFgColor ?: [NSColor colorNamed:@"TablineFill"]).CGColor;
+    self.layer.backgroundColor = self.tablineFillFgColor.CGColor;
+}
+
+- (void)viewDidChangeEffectiveAppearance
+{
+    for (MMTab *tab in _tabs) tab.state = tab.state;
 }
 
 #pragma mark - Accessors
@@ -171,10 +183,22 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
     }
 }
 
+- (NSColor *)tablineBgColor
+{
+    return _tablineBgColor ?: getCurrentAppearance(self.effectiveAppearance)
+        ? [NSColor colorWithWhite:0.2 alpha:1]
+        : [NSColor colorWithWhite:0.8 alpha:1];
+}
+
 - (void)setTablineBgColor:(NSColor *)color
 {
     _tablineBgColor = color;
     for (MMTab *tab in _tabs) tab.state = tab.state;
+}
+
+- (NSColor *)tablineFgColor
+{
+    return _tablineFgColor ?: NSColor.disabledControlTextColor;
 }
 
 - (void)setTablineFgColor:(NSColor *)color
@@ -183,10 +207,22 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
     for (MMTab *tab in _tabs) tab.state = tab.state;
 }
 
+- (NSColor *)tablineSelBgColor
+{
+    return _tablineSelBgColor ?: getCurrentAppearance(self.effectiveAppearance)
+        ? [NSColor colorWithWhite:0.4 alpha:1]
+        : NSColor.whiteColor;
+}
+
 - (void)setTablineSelBgColor:(NSColor *)color
 {
     _tablineSelBgColor = color;
     for (MMTab *tab in _tabs) tab.state = tab.state;
+}
+
+- (NSColor *)tablineSelFgColor
+{
+    return _tablineSelFgColor ?: NSColor.controlTextColor;
 }
 
 - (void)setTablineSelFgColor:(NSColor *)color
@@ -196,6 +232,13 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
     _leftScrollButton.fgColor = color;
     _rightScrollButton.fgColor = color;
     for (MMTab *tab in _tabs) tab.state = tab.state;
+}
+
+- (NSColor *)tablineFillFgColor
+{
+    return _tablineFillFgColor ?: getCurrentAppearance(self.effectiveAppearance)
+        ? [NSColor colorWithWhite:0.2 alpha:1]
+        : [NSColor colorWithWhite:0.8 alpha:1];
 }
 
 - (void)setTablineFillFgColor:(NSColor *)color

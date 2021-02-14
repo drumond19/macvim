@@ -4,6 +4,8 @@
 
 @interface MMHoverButton : NSButton
 
-@property (nonatomic) NSColor *fgColor;
+@property (nonatomic, retain) NSColor *fgColor;
+
++ (NSImage *)imageNamed:(NSString *)name;
 
 @end

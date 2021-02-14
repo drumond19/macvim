@@ -28,7 +28,7 @@
         _tabline = tabline;
         
         _closeButton = [MMHoverButton new];
-        _closeButton.image = [NSImage imageNamed:@"CloseTabButton"];
+        _closeButton.image = [MMHoverButton imageNamed:@"CloseTabButton"];
         _closeButton.target = self;
         _closeButton.action = @selector(closeTab:);
         _closeButton.translatesAutoresizingMaskIntoConstraints = NO;
@@ -100,25 +100,25 @@
     // DO NOT animate so that UX feels snappier.
     if (state == MMTabStateSelected) {
         _closeButton.alphaValue = 1;
-        _titleLabel.textColor = _tabline.tablineSelFgColor ?: NSColor.controlTextColor;
-        self.fillColor = _tabline.tablineSelBgColor ?: [NSColor colorNamed:@"TablineSel"];
+        _titleLabel.textColor = _tabline.tablineSelFgColor;
+        self.fillColor = _tabline.tablineSelBgColor;
         self.shadow = _shadow;
     }
     else if (state == MMTabStateUnselected) {
         if (_state == MMTabStateSelected) {
             _closeButton.alphaValue = 0;
-            _titleLabel.textColor = _tabline.tablineFgColor ?: NSColor.disabledControlTextColor;
-            self.fillColor = _tabline.tablineBgColor ?: [NSColor colorNamed:@"Tabline"];
+            _titleLabel.textColor = _tabline.tablineFgColor;
+            self.fillColor = _tabline.tablineBgColor;
         } else {
             _closeButton.animator.alphaValue = 0;
-            _titleLabel.animator.textColor = _tabline.tablineFgColor ?: NSColor.disabledControlTextColor;
-            self.animator.fillColor = _tabline.tablineBgColor ?: [NSColor colorNamed:@"Tabline"];
+            _titleLabel.animator.textColor = _tabline.tablineFgColor;
+            self.animator.fillColor = _tabline.tablineBgColor;
         }
         self.shadow = nil;
     }
     else { // state == MMTabStateUnselectedHover
         _closeButton.animator.alphaValue = 1;
-        _titleLabel.animator.textColor = _tabline.tablineSelFgColor ?: NSColor.controlTextColor;
+        _titleLabel.animator.textColor = _tabline.tablineSelFgColor;
         self.animator.fillColor = self.unselectedHoverColor;
         self.animator.shadow = _shadow;
     }
@@ -128,12 +128,9 @@
 
 - (NSColor *)unselectedHoverColor
 {   // stackoverflow.com/a/52516863/111418
-    NSColor *tablineSelBgColor = _tabline.tablineSelBgColor ?: [NSColor colorNamed:@"TablineSel"];
-    NSColor *tablineBgColor = _tabline.tablineBgColor ?: [NSColor colorNamed:@"Tabline"];
-    NSColor *c;
     NSAppearance *currentAppearance = NSAppearance.currentAppearance;
     NSAppearance.currentAppearance = self.effectiveAppearance;
-    c = [tablineSelBgColor blendedColorWithFraction:0.6 ofColor:tablineBgColor];
+    NSColor *c = [_tabline.tablineSelBgColor blendedColorWithFraction:0.6 ofColor:_tabline.tablineBgColor];
     NSAppearance.currentAppearance = currentAppearance;
     return c;
 }

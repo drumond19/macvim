@@ -71,7 +71,6 @@
 		907FF7512521BCE200BADACB /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 907FF74F2521BCE200BADACB /* MainMenu.xib */; };
 		907FF7542521BDA600BADACB /* Preferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 907FF7522521BDA600BADACB /* Preferences.xib */; };
 		907FF7572521BDC300BADACB /* FindAndReplace.xib in Resources */ = {isa = PBXBuildFile; fileRef = 907FF7552521BDC200BADACB /* FindAndReplace.xib */; };
-		9218149D254D105F00E48243 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9218149C254D105F00E48243 /* Assets.xcassets */; };
 		925B55D5254B604A006B047E /* MMHoverButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 925B55D1254B604A006B047E /* MMHoverButton.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		925B55D7254B61AC006B047E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 925B55D6254B61AB006B047E /* QuartzCore.framework */; };
 		92C6F6E825587E1C007AE21E /* MMTab.m in Sources */ = {isa = PBXBuildFile; fileRef = 92C6F6E325587E1C007AE21E /* MMTab.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -431,7 +430,6 @@
 		90F84F312521F8760000268B /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/MainMenu.strings; sourceTree = "<group>"; };
 		90F84F322521F87F0000268B /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/MainMenu.strings; sourceTree = "<group>"; };
 		90F84F332521F8880000268B /* tr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = tr; path = tr.lproj/MainMenu.strings; sourceTree = "<group>"; };
-		9218149C254D105F00E48243 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		925B55CD254B604A006B047E /* MMHoverButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMHoverButton.h; sourceTree = "<group>"; };
 		925B55D1254B604A006B047E /* MMHoverButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MMHoverButton.m; sourceTree = "<group>"; };
 		925B55D6254B61AB006B047E /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -615,7 +613,6 @@
 				907FF7552521BDC200BADACB /* FindAndReplace.xib */,
 				907FF7522521BDA600BADACB /* Preferences.xib */,
 				907FF74F2521BCE200BADACB /* MainMenu.xib */,
-				9218149C254D105F00E48243 /* Assets.xcassets */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -977,7 +974,6 @@
 				1D384A0E100D671700D3C22F /* KeyBinding.plist in Resources */,
 				907FF7542521BDA600BADACB /* Preferences.xib in Resources */,
 				907FF7512521BCE200BADACB /* MainMenu.xib in Resources */,
-				9218149D254D105F00E48243 /* Assets.xcassets in Resources */,
 				907FF7572521BDC300BADACB /* FindAndReplace.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

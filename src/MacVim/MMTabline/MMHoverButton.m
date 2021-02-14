@@ -6,6 +6,43 @@
     NSBox *_circle;
 }
 
++ (NSImage *)imageNamed:(NSString *)name
+{
+    CGFloat size = [name isEqualToString:@"CloseTabButton"] ? 15 : 17;
+    return [NSImage imageWithSize:NSMakeSize(size, size) flipped:NO drawingHandler:^BOOL(NSRect dstRect) {
+        NSBezierPath *p = [NSBezierPath new];
+        if ([name isEqualToString:@"AddTabButton"]) {
+            [p moveToPoint:NSMakePoint( 8.5,  4.5)];
+            [p lineToPoint:NSMakePoint( 8.5, 12.5)];
+            [p moveToPoint:NSMakePoint( 4.5,  8.5)];
+            [p lineToPoint:NSMakePoint(12.5,  8.5)];
+            [p setLineWidth:1.2];
+            [p stroke];
+        }
+        else if ([name isEqualToString:@"CloseTabButton"]) {
+            [p moveToPoint:NSMakePoint( 4.5,  4.5)];
+            [p lineToPoint:NSMakePoint(10.5, 10.5)];
+            [p moveToPoint:NSMakePoint( 4.5, 10.5)];
+            [p lineToPoint:NSMakePoint(10.5,  4.5)];
+            [p setLineWidth:1.2];
+            [p stroke];
+        }
+        else if ([name isEqualToString:@"ScrollLeftButton"]) {
+            [p moveToPoint:NSMakePoint( 5.0,  8.5)];
+            [p lineToPoint:NSMakePoint(10.0,  4.5)];
+            [p lineToPoint:NSMakePoint(10.0, 12.5)];
+            [p fill];
+        }
+        else if ([name isEqualToString:@"ScrollRightButton"]) {
+            [p moveToPoint:NSMakePoint(12.0,  8.5)];
+            [p lineToPoint:NSMakePoint( 7.0,  4.5)];
+            [p lineToPoint:NSMakePoint( 7.0, 12.5)];
+            [p fill];
+        }
+        return YES;
+    }];
+}
+
 - (instancetype)initWithFrame:(NSRect)frameRect
 {
     self = [super initWithFrame:frameRect];
