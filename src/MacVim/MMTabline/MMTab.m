@@ -99,30 +99,29 @@
     // Transitions to and from MMTabStateSelected
     // DO NOT animate so that UX feels snappier.
     if (state == MMTabStateSelected) {
-        _closeButton.alphaValue = 1;
+        _closeButton.fgColor = _tabline.tablineSelFgColor;
         _titleLabel.textColor = _tabline.tablineSelFgColor;
         self.fillColor = _tabline.tablineSelBgColor;
         self.shadow = _shadow;
     }
     else if (state == MMTabStateUnselected) {
         if (_state == MMTabStateSelected) {
-            _closeButton.alphaValue = 0;
+            _closeButton.fgColor = _tabline.tablineFgColor;
             _titleLabel.textColor = _tabline.tablineFgColor;
             self.fillColor = _tabline.tablineBgColor;
         } else {
-            _closeButton.animator.alphaValue = 0;
+            _closeButton.animator.fgColor = _tabline.tablineFgColor;
             _titleLabel.animator.textColor = _tabline.tablineFgColor;
             self.animator.fillColor = _tabline.tablineBgColor;
         }
         self.shadow = nil;
     }
     else { // state == MMTabStateUnselectedHover
-        _closeButton.animator.alphaValue = 1;
+        _closeButton.animator.fgColor = _tabline.tablineSelFgColor;
         _titleLabel.animator.textColor = _tabline.tablineSelFgColor;
         self.animator.fillColor = self.unselectedHoverColor;
         self.animator.shadow = _shadow;
     }
-    _closeButton.fgColor = _tabline.tablineSelFgColor;
     _state = state;
 }
 
