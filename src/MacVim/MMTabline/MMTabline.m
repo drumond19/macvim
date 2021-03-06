@@ -78,12 +78,10 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
         [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[_leftScrollButton][_rightScrollButton]-5-[_scrollView]-5-[_addTabButton]" options:NSLayoutFormatAlignAllCenterY metrics:nil views:NSDictionaryOfVariableBindings(_scrollView, _leftScrollButton, _rightScrollButton, _addTabButton)]];
         [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_scrollView]|" options:0 metrics:nil views:@{@"_scrollView":_scrollView}]];
         
-        CGFloat scrollButtonsLeadingMargin = _showsTabScrollButtons ? 5 : -((NSWidth(_leftScrollButton.frame) * 2) + 5);
-        _tabScrollButtonsLeadingConstraint = [NSLayoutConstraint constraintWithItem:_leftScrollButton attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeLeading multiplier:1 constant:scrollButtonsLeadingMargin];
+        _tabScrollButtonsLeadingConstraint = [NSLayoutConstraint constraintWithItem:_leftScrollButton attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeLeading multiplier:1 constant:5];
         [self addConstraint:_tabScrollButtonsLeadingConstraint];
         
-        CGFloat addButtonTrailingMargin = _showsAddTabButton ? 5 : -(NSWidth(_addTabButton.frame) + 5);
-        _addTabButtonTrailingConstraint = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:_addTabButton attribute:NSLayoutAttributeTrailing multiplier:1 constant:addButtonTrailingMargin];
+        _addTabButtonTrailingConstraint = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual toItem:_addTabButton attribute:NSLayoutAttributeTrailing multiplier:1 constant:5];
         [self addConstraint:_addTabButtonTrailingConstraint];
         
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didScroll:) name:NSViewBoundsDidChangeNotification object:_scrollView.contentView];
@@ -158,11 +156,12 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
     //   The trailing constraint is a negative margin so the add
     //   button is clipped out of the right side of the view. The
     //   amount of negative margin is the width of the button plus
-    //   the 5 to account for the margin between the scroll view
-    //   and the button.
+    //   5 to account for the margin between the scroll view and
+    //   the button plus the shadow blur radius of each tab (see
+    //   -drawRect: in MMTab.m).
     if (_showsAddTabButton != showsAddTabButton) {
         _showsAddTabButton = showsAddTabButton;
-        _addTabButtonTrailingConstraint.constant = showsAddTabButton ? 5 : -(NSWidth(_addTabButton.frame) + 5);;
+        _addTabButtonTrailingConstraint.constant = showsAddTabButton ? 5 : -(NSWidth(_addTabButton.frame) + 5 + MMTabShadowBlurRadius);
     }
 }
 
@@ -175,11 +174,11 @@ MMHoverButton* MakeHoverButton(MMTabline *tabline, NSString *imageName, SEL acti
     //   buttons are clipped out of the left side of the view. The
     //   amount of the negative margin is the width of each button
     //   plus 5 to account for the margin between the buttons and
-    //   the scroll view plus 2 to account for the 2pt shadow inset
-    //   of each tab (see -drawRect: in MMTab.m).
+    //   the scroll view plus the shadow blur radius of each tab
+    //   (see -drawRect: in MMTab.m).
     if (_showsTabScrollButtons != showsTabScrollButtons) {
         _showsTabScrollButtons = showsTabScrollButtons;
-        _tabScrollButtonsLeadingConstraint.constant = showsTabScrollButtons ? 5 : -((NSWidth(_leftScrollButton.frame) * 2) + 5 + 2);
+        _tabScrollButtonsLeadingConstraint.constant = showsTabScrollButtons ? 5 : -((NSWidth(_leftScrollButton.frame) * 2) + 5 + MMTabShadowBlurRadius);
     }
 }
 

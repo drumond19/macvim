@@ -2,6 +2,8 @@
 
 // A tab with a close button and title.
 
+#define MMTabShadowBlurRadius (2)
+
 typedef enum : NSUInteger {
     MMTabStateSelected,
     MMTabStateUnselected,

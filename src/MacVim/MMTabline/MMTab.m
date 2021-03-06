@@ -36,7 +36,7 @@
 
         _titleLabel = [NSTextField new];
         _titleLabel.stringValue = @"[No Name]";
-        _titleLabel.font = [NSFont systemFontOfSize:11];
+        _titleLabel.font = [NSFont systemFontOfSize:11 weight:NSFontWeightSemibold];
         _titleLabel.textColor = NSColor.controlTextColor;
         _titleLabel.editable = NO;
         _titleLabel.selectable = NO;
@@ -60,7 +60,7 @@
 
         _shadow = [NSShadow new];
         _shadow.shadowColor = [NSColor colorWithWhite:0 alpha:0.3];
-        _shadow.shadowBlurRadius = 2;
+        _shadow.shadowBlurRadius = MMTabShadowBlurRadius;
         
         self.state = MMTabStateUnselected;
     }
@@ -137,14 +137,16 @@
 - (void)drawRect:(NSRect)dirtyRect
 {
     [self.fillColor set];
+    CGFloat minX = MMTabShadowBlurRadius;
     CGFloat maxX = NSMaxX(self.bounds);
+    CGFloat maxY = MMTablineHeight;
     NSBezierPath *p = [NSBezierPath new];
-    [p moveToPoint:NSMakePoint(2, 0)];
-    [p lineToPoint:NSMakePoint(5.6, 20.5)];
-    [p curveToPoint: NSMakePoint(8.5, 23) controlPoint1: NSMakePoint(5.8, 22) controlPoint2: NSMakePoint(7.1, 23)];
-    [p lineToPoint:NSMakePoint(maxX - 8.5, 23)];
-    [p curveToPoint:NSMakePoint(maxX - 5.6, 20.5) controlPoint1: NSMakePoint(maxX - 7.1, 23) controlPoint2: NSMakePoint(maxX - 5.8, 22)];
-    [p lineToPoint:NSMakePoint(maxX - 2, 0)];
+    [p moveToPoint:NSMakePoint(minX, 0)];
+    [p lineToPoint:NSMakePoint(minX + 3.6, maxY - 2.5)];
+    [p curveToPoint: NSMakePoint(minX + 6.5, maxY) controlPoint1: NSMakePoint(minX + 3.8, maxY - 1) controlPoint2: NSMakePoint(minX + 5.1, maxY)];
+    [p lineToPoint:NSMakePoint(maxX - 6.5 - minX, maxY)];
+    [p curveToPoint:NSMakePoint(maxX - 3.6 - minX, maxY - 2.5) controlPoint1: NSMakePoint(maxX - 5.1 - minX, maxY) controlPoint2: NSMakePoint(maxX - 3.8 - minX, maxY - 1)];
+    [p lineToPoint:NSMakePoint(maxX - minX, 0)];
     [p closePath];
     // On macOS 11, translate the tab down 0.5pt to provide a thin
     // line between the top of the tab and the window's title bar.
