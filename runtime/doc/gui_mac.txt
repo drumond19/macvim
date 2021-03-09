@@ -272,7 +272,7 @@ KEY				VALUE ~
 *MMAppearanceModeSelection*	dark mode selection (|macvim-dark-mode|)[bool]
 *MMShareFindPboard*		share search text to Find Pasteboard [bool]
 *MMShowAddTabButton*		enable "add tab" button on tabline [bool]
-*MMTabMaxWidth*			maximum width of a tab [int]
+*MMShowTabScrollButtons*	enable tab scroll buttons on tabline [bool]
 *MMTabMinWidth*			minimum width of a tab [int]
 *MMTabOptimumWidth*		default width of a tab [int]
 *MMTextInsetBottom*		text area offset in pixels [int]
