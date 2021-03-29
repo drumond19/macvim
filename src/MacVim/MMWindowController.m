@@ -71,7 +71,6 @@
 #import "MMWindow.h"
 #import "MMWindowController.h"
 #import "Miscellaneous.h"
-#import <PSMTabBarControl/PSMTabBarControl.h>
 
 
 // These have to be the same as in option.h
@@ -87,7 +86,6 @@
 - (NSSize)constrainContentSizeToScreenSize:(NSSize)contentSize;
 - (NSRect)constrainFrame:(NSRect)frame;
 - (void)updateResizeConstraints;
-- (NSTabViewItem *)addNewTabViewItem;
 - (BOOL)askBackendForStarRegister:(NSPasteboard *)pb;
 - (void)updateTablineSeparator;
 - (void)hideTablineSeparator:(BOOL)hide;
@@ -97,8 +95,6 @@
 - (void)applicationDidChangeScreenParameters:(NSNotification *)notification;
 - (void)enterNativeFullScreen;
 - (void)processAfterWindowPresentedQueue;
-+ (NSString *)tabBarStyleForUnified;
-+ (NSString *)tabBarStyleForMetal;
 @end
 
 
@@ -314,7 +310,7 @@
     // presentWindow: but must carefully check dependencies on 'setupDone'
     // flag.
 
-    [self addNewTabViewItem];
+    [vimView addNewTab];
 
     setupDone = YES;
 }
@@ -420,7 +416,7 @@
         // for example if 'showtabline=2').
         // TODO: Store window pixel dimensions instead of rows/columns?
         int autosaveRows = rows;
-        if (![[vimView tabBarControl] isHidden])
+        if (![[vimView tabline] isHidden])
             ++autosaveRows;
 
         NSUserDefaults *ud = [NSUserDefaults standardUserDefaults];
@@ -813,9 +809,9 @@
     }
 }
 
-- (void)showTabBar:(BOOL)on
+- (void)showTabline:(BOOL)on
 {
-    [[vimView tabBarControl] setHidden:!on];
+    [[vimView tabline] setHidden:!on];
     [self updateTablineSeparator];
     shouldMaximizeWindow = YES;
 }
@@ -1651,11 +1647,6 @@
     [decoratedWindow setContentMinSize:minSize];
 }
 
-- (NSTabViewItem *)addNewTabViewItem
-{
-    return [vimView addNewTabViewItem];
-}
-
 - (BOOL)askBackendForStarRegister:(NSPasteboard *)pb
 { 
     // TODO: Can this be done with evaluateExpression: instead?
@@ -1677,7 +1668,7 @@
 
 - (void)updateTablineSeparator
 {
-    BOOL tabBarVisible  = ![[vimView tabBarControl] isHidden];
+    BOOL tablineVisible  = ![[vimView tabline] isHidden];
     BOOL toolbarHidden  = [decoratedWindow toolbar] == nil;
     BOOL windowTextured = ([decoratedWindow styleMask] &
                             NSWindowStyleMaskTexturedBackground) != 0;
@@ -1688,7 +1679,7 @@
         // modern macOS versions.
         hideSeparator = YES;
     } else {
-        if (fullScreenEnabled || tabBarVisible)
+        if (fullScreenEnabled || tablineVisible)
             hideSeparator = YES;
         else
             hideSeparator = toolbarHidden && !windowTextured;
@@ -1889,16 +1880,6 @@
         block();
 
     [afterWindowPresentedQueue release]; afterWindowPresentedQueue = nil;
-}
-
-+ (NSString *)tabBarStyleForUnified
-{
-    return shouldUseYosemiteTabBarStyle() ? (shouldUseMojaveTabBarStyle() ? @"Mojave" : @"Yosemite") : @"Unified";
-}
-
-+ (NSString *)tabBarStyleForMetal
-{
-    return shouldUseYosemiteTabBarStyle() ? (shouldUseMojaveTabBarStyle() ? @"Mojave" : @"Yosemite") : @"Metal";
 }
 
 @end // MMWindowController (Private)
